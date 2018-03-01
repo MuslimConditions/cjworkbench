@@ -1,6 +1,4 @@
-from channels import Channel
 from server.websockets import *
-import sys
 
 # kick off django channels background task. render_from = starting from this module down
 def trigger_render(workflow, render_from):

@@ -1,12 +1,16 @@
-# Websocket connection routing, and background proceses.
+# Websocket connection routing, and background proceseses.
 
-from channels.routing import route
-from server.websockets import ws_add, ws_disconnect
-from server.execute import execute_render_message_consumer
+from django.conf.urls import url
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from server.websockets import WorkflowWebsocketConsumer
 
-channel_routing = [
-    route("websocket.connect", ws_add),
-    route("websocket.disconnect", ws_disconnect),
-    route('execute-render', execute_render_message_consumer),
-]
+application = ProtocolTypeRouter({
 
+    # WebSocket chat handler
+    "websocket": AuthMiddlewareStack(
+        URLRouter([
+            url("^\d_$", WorkflowWebsocketConsumer)
+        ])
+    ),
+})
