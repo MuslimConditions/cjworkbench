@@ -255,6 +255,19 @@ class WfModule(models.Model):
         pval = ParameterVal.objects.get(wf_module=self, parameter_spec=pspec)
         return pval.selected_menu_item_string()
 
+    def get_param_secret_secret(self, id_name: str):
+        """Get a secret's "secret" data, or None."""
+        try:
+            pspec = ParameterSpec.objects.get(module_version=self.module_version, id_name=id_name)
+        except ParameterSpec.DoesNotExist:
+            raise ValueError(f'Request for non-existent secret parameter ' + id_name)
+        pval = ParameterVal.objects.get(wf_module=self, parameter_spec=pspec)
+        val = pval.get_value()
+        if val:
+            return val['secret']
+        else:
+            return None
+
     def get_param_column(self, name):
         return self.get_param_raw(name, ParameterSpec.COLUMN)
 
@@ -271,6 +284,7 @@ class WfModule(models.Model):
         self.save()
         if notify:
             websockets.ws_client_wf_module_status(self, self.status)
+
 
     # re-render entire workflow when a module goes ready or error, on the assumption that new output data is available
     def set_ready(self, notify=True):

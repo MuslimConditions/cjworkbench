@@ -190,16 +190,8 @@ class WorkbenchAPI {
     return this._fetch(`/api/workflows/${workflowId}/duplicate`)
   }
 
-  currentGoogleClientAccessToken() {
-    return this._fetch('/api/user/google-client-access-token')
-  }
-
   currentUser() {
     return this._fetch('/api/user/')
-  }
-
-  disconnectCurrentUser(id) {
-    return this._submit('delete', `/api/user/google_credentials`, { credentialId: id })
   }
 
   deleteWfModuleNotifications(wfModuleId) {
@@ -220,6 +212,14 @@ class WorkbenchAPI {
 
   postParamEvent(paramId, data) {
     return this._post(`/api/parameters/${paramId}/event`, data)
+  }
+
+  paramOauthGetAccessToken(paramId) {
+    return this._fetch(`/api/parameters/${paramId}/oauth_get_access_token`)
+  }
+
+  paramOauthDisconnect(paramId) {
+    return this._delete(`/api/parameters/${paramId}/oauth_authorize`)
   }
 }
 

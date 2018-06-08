@@ -8,9 +8,6 @@ import pandas as pd
 import os
 import json
 
-gdrive_discovery_file = os.path.join(settings.BASE_DIR, 'server/tests/test_data/google_drive_api_discovery.json')
-with open(gdrive_discovery_file) as f: gdrive_discovery = f.read()
-
 gdrive_file_meta = {
   "file": {
     "kind": "drive#file",

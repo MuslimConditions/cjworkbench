@@ -99,9 +99,10 @@ async function loadDefaultPickerFactory() {
 export default class GoogleFileSelect extends React.PureComponent {
   static propTypes = {
     api: PropTypes.shape({
-      currentGoogleClientAccessToken: PropTypes.func.isRequired,
+      paramOauthGetAccessToken: PropTypes.func.isRequired,
     }).isRequired,
-    userCreds: PropTypes.number, // TODO document what it is
+    googleCredentialsParamId: PropTypes.number.isRequired,
+    googleCredentialsSecretName: PropTypes.string, // when this changes, call api.paramOauthGetAccessToken
     fileMetadataJson: PropTypes.string, // may be empty/null
     onChangeJson: PropTypes.func.isRequired, // func("{ id, name }") => undefined
     loadPickerFactory: PropTypes.func, // func() => Promise[PickerFactory], default uses Google APIs
@@ -114,17 +115,17 @@ export default class GoogleFileSelect extends React.PureComponent {
       pickerFactory: null,
       accessToken: null,
       loadingAccessToken: false,
-      userCredsThatLedToAccessToken: null,
+      secretNameThatLedToAccessToken: null,
     }
   }
 
   refreshAccessToken() {
-    const userCreds = this.props.userCreds
+    const googleCredentialsSecretName = this.props.googleCredentialsSecretName
 
-    if (userCreds === null) {
+    if (googleCredentialsSecretName === null) {
       this.setState({
         accessToken: null,
-        userCredsThatLedToAccessToken: null,
+        secretNameThatLedToAccessToken: null,
         loadingAccessToken: false,
       })
       return
@@ -132,18 +133,18 @@ export default class GoogleFileSelect extends React.PureComponent {
 
     this.setState({
       accessToken: null,
-      userCredsThatLedToAccessToken: userCreds,
+      secretNameThatLedToAccessToken: googleCredentialsSecretName,
       loadingAccessToken: true,
     })
 
-    this.props.api.currentGoogleClientAccessToken()
+    this.props.api.paramOauthGetAccessToken(this.props.googleCredentialsParamId)
       .then(json => json && json.access_token || null)
       .catch(err => {
         console.warn(err)
         return null
       })
       .then(access_token_or_null => {
-        if (userCreds === this.state.userCredsThatLedToAccessToken) { // avoid race
+        if (googleCredentialsSecretName === this.state.secretNameThatLedToAccessToken) { // avoid race
           this.setState({
             accessToken: access_token_or_null,
             loadingAccessToken: false,
@@ -181,7 +182,7 @@ export default class GoogleFileSelect extends React.PureComponent {
       this.setState({
         loadingAccessToken: false,
         accessToken: null,
-        userCredsThatLedToAccessToken: null,
+        secretNameThatLedToAccessToken: null,
       })
     }
 
@@ -189,7 +190,7 @@ export default class GoogleFileSelect extends React.PureComponent {
   }
 
   componentDidUpdate() {
-    if (this.props.userCreds !== this.state.userCredsThatLedToAccessToken) {
+    if (this.props.googleCredentialsSecretName !== this.state.secretNameThatLedToAccessToken) {
       this.refreshAccessToken()
     }
   }
@@ -222,11 +223,15 @@ export default class GoogleFileSelect extends React.PureComponent {
         <p className="loading">Loading...</p>
       )
     } else if (!accessToken) {
-      button = (
-        <p className="not-signed-in">
-          To {fileId ? 'choose another file' : 'choose a file'}, you must connect
-        </p>
-      )
+      if (this.props.googleCredentialsSecretName) {
+        button = (
+          <p className="sign-in-error">failure: please reconnect</p>
+        )
+      } else {
+        button = (
+          <p className="not-signed-in">(not signed in)</p>
+        )
+      }
     } else {
       button = (
         <button
