@@ -2,6 +2,15 @@ import React from 'react'
 import PropTypes from 'prop-types'
 
 
+const MimeTypesString = [
+  'application/vnd.google-apps.spreadsheet',
+  'text/csv',
+  'text/tab-separated-values',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+].join(',')
+
+
 class PickerFactory {
   constructor() {
     this.picker = null
@@ -18,6 +27,7 @@ class PickerFactory {
     if (this.picker !== null) return
 
     const onEvent = (data) => {
+      console.log(data)
       switch (data.action) {
         case 'loaded':
           break
@@ -38,8 +48,9 @@ class PickerFactory {
       }
     }
 
-    const view = new google.picker.DocsView(google.picker.ViewId.SPREADSHEETS)
+    const view = new google.picker.DocsView(google.picker.ViewId.DOCS)
       .setIncludeFolders(true)
+      .setMimeTypes(MimeTypesString)
 
     this.picker = new google.picker.PickerBuilder()
       .addView(view)
